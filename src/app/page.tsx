@@ -171,7 +171,7 @@ export default function Component() {
               <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <h1 className="text-2xl font-bold">도서관 운영시간 필터</h1>
+            <h1 className="text-2xl font-bold">Hapbooker!</h1>
           </div>
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="z-50 relative bg-[#42855B] p-2 rounded-full">
             {isMenuOpen ? <X size={24} className="text-white" /> : <Menu size={24} className="text-white" />}
@@ -424,7 +424,7 @@ export default function Component() {
       <footer className="bg-[#42855B] text-white p-4">
         <div className="max-w-[768px] mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
-            <p>&copy; 2024 도서관 운영시간 필터. All rights reserved.</p>
+            <p>&copy; 2024 Hapbooker!. All rights reserved.</p>
           </div>
           <div className="flex space-x-4">
             <a href="#" className="hover:text-[#90B77D] transition-colors duration-300">
