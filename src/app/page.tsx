@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ChevronDown, ChevronUp, Search, Clock, Calendar, Info, Facebook, Twitter, Instagram, Menu, MessageCircle, Send, Heart } from 'lucide-react'
+import { X, ChevronDown, ChevronUp, Search, Clock, Calendar, Facebook, Twitter, Instagram, Menu, MessageCircle, Send, Heart } from 'lucide-react'
 
 type Post = {
   id: number;
