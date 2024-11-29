@@ -1,7 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ChevronDown, ChevronUp, Search, Clock, Calendar, Facebook, Twitter, Instagram, Menu, MessageCircle, Send, Heart } from 'lucide-react'
+import { X, ChevronDown, ChevronUp, Search, Clock, Calendar, Facebook, Twitter, Instagram, Menu, Star, Send, MessageCircle, Heart } from 'lucide-react'
+
+type Review = {
+  id: number;
+  author: string;
+  content: string;
+  rating: number;
+}
+
+type Library = {
+  id: number;
+  name: string;
+  weekdayOpen: string;
+  weekdayClose: string;
+  weekendOpen: string;
+  weekendClose: string;
+  holidayOpen: string;
+  holidayClose: string;
+  closedDays: string[];
+  address: string;
+  phone: string;
+  reviews: Review[];
+}
 
 type Post = {
   id: number;
@@ -11,14 +33,12 @@ type Post = {
   comments: { id: number; author: string; content: string; }[];
 }
 
-type Library = typeof libraries[0]  // 라이브러리 타입 추출
-
-const libraries = [
-  { id: 1, name: '중앙도서관', weekdayOpen: '09:00', weekdayClose: '22:00', weekendOpen: '09:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['일'], address: '서울시 중구 세종대로 110', phone: '02-1234-5678' },
-  { id: 2, name: '디지털도서관', weekdayOpen: '09:00', weekdayClose: '21:00', weekendOpen: '09:00', weekendClose: '18:00', holidayOpen: '10:00', holidayClose: '18:00', closedDays: ['월'], address: '서울시 강남구 테헤란로 152', phone: '02-2345-6789' },
-  { id: 3, name: '어린이도서관', weekdayOpen: '10:00', weekdayClose: '19:00', weekendOpen: '10:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['일', '월'], address: '서울시 송파구 올림픽로 300', phone: '02-3456-7890' },
-  { id: 4, name: '과학도서관', weekdayOpen: '08:30', weekdayClose: '20:00', weekendOpen: '09:00', weekendClose: '18:00', holidayOpen: '09:00', holidayClose: '18:00', closedDays: ['토', '일'], address: '대전시 유성구 대학로 291', phone: '042-1234-5678' },
-  { id: 5, name: '역사도서관', weekdayOpen: '09:00', weekdayClose: '18:00', weekendOpen: '10:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['월', '화'], address: '경주시 불국로 26', phone: '054-2345-6789' },
+const libraries: Library[] = [
+  { id: 1, name: '중앙도서관', weekdayOpen: '09:00', weekdayClose: '22:00', weekendOpen: '09:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['일'], address: '서울시 중구 세종대로 110', phone: '02-1234-5678', reviews: [] },
+  { id: 2, name: '디지털도서관', weekdayOpen: '09:00', weekdayClose: '21:00', weekendOpen: '09:00', weekendClose: '18:00', holidayOpen: '10:00', holidayClose: '18:00', closedDays: ['월'], address: '서울시 강남구 테헤란로 152', phone: '02-2345-6789', reviews: [] },
+  { id: 3, name: '어린이도서관', weekdayOpen: '10:00', weekdayClose: '19:00', weekendOpen: '10:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['일', '월'], address: '서울시 송파구 올림픽로 300', phone: '02-3456-7890', reviews: [] },
+  { id: 4, name: '과학도서관', weekdayOpen: '08:30', weekdayClose: '20:00', weekendOpen: '09:00', weekendClose: '18:00', holidayOpen: '09:00', holidayClose: '18:00', closedDays: ['토', '일'], address: '대전시 유성구 대학로 291', phone: '042-1234-5678', reviews: [] },
+  { id: 5, name: '역사도서관', weekdayOpen: '09:00', weekdayClose: '18:00', weekendOpen: '10:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['월', '화'], address: '경주시 불국로 26', phone: '054-2345-6789', reviews: [] },
 ]
 
 const days = ['월', '화', '수', '목', '금', '토', '일']
@@ -43,13 +63,14 @@ export default function Component() {
     holidayClose: '',
     closedDays: [],
   })
-  const [filteredLibraries, setFilteredLibraries] = useState(libraries)
+  const [filteredLibraries, setFilteredLibraries] = useState<Library[]>(libraries)
   const [selectedLibrary, setSelectedLibrary] = useState<Library | null>(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [newReview, setNewReview] = useState({ author: '', content: '', rating: 0 })
   const [activeView, setActiveView] = useState('home')
   const [communityPosts, setCommunityPosts] = useState([
     { id: 1, author: '김도서', content: '새로 개관한 디지털도서관 정말 좋네요!', likes: 5, comments: [
-      { id: 1, author: '이독서', content: '저도 그렇게 생각해요! 시설이 정말 좋더라구요.' },
+      { id: 1, author: '이독서', content: '저도 이렇게 생각해요! 시설이 정말 좋더라구요.' },
       { id: 2, author: '박책읽기', content: '디지털 자료가 특히 잘 구비되어 있어서 좋았어요.' }
     ]},
     { id: 2, author: '이독서', content: '주말 독서모임 함께하실 분 계신가요?', likes: 3, comments: [
@@ -59,7 +80,6 @@ export default function Component() {
   const [newPost, setNewPost] = useState('')
   const [selectedPost, setSelectedPost] = useState<Post | null>(null)
   const [newComment, setNewComment] = useState('')
-  const [newCommentAuthor, setNewCommentAuthor] = useState('') // Added new state
 
   useEffect(() => {
     const filtered = libraries.filter(library => {
@@ -78,10 +98,8 @@ export default function Component() {
   }, [searchTerm, filters])
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    const checked = (e.target as HTMLInputElement).checked
-    
-    if (e.target.type === 'checkbox') {
+    const { name, value, type, checked } = e.target as HTMLInputElement
+    if (type === 'checkbox') {
       setFilters(prev => ({
         ...prev,
         closedDays: checked
@@ -117,6 +135,23 @@ export default function Component() {
     return options
   }
 
+  const handleNewReview = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (newReview.content.trim() && selectedLibrary) {
+      const updatedLibraries = libraries.map(lib => 
+        lib.id === (selectedLibrary as Library).id 
+          ? { ...lib, reviews: [...lib.reviews, { ...newReview, id: Date.now() }] }
+          : lib
+      )
+      setFilteredLibraries(updatedLibraries)
+      setSelectedLibrary({
+        ...selectedLibrary,
+        reviews: [...selectedLibrary.reviews, { ...newReview, id: Date.now() }]
+      })
+      setNewReview({ author: '', content: '', rating: 0 })
+    }
+  }
+
   const handleNewPost = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (newPost.trim()) {
@@ -134,31 +169,22 @@ export default function Component() {
         post.id === postId ? { ...post, likes: post.likes + 1 } : post
       )
     )
-    if (selectedPost && selectedPost.id === postId) {
-      setSelectedPost(prevPost => prevPost ? { ...prevPost, likes: prevPost.likes + 1 } : null)
-    }
   }
 
   const handleNewComment = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (newComment.trim() && selectedPost) {
-      const newCommentObj = { id: Date.now(), author: newCommentAuthor || '익명', content: newComment }
       setCommunityPosts(prevPosts =>
         prevPosts.map(post =>
-          post.id === selectedPost.id
+          selectedPost && post.id === selectedPost.id
             ? {
                 ...post,
-                comments: [...post.comments, newCommentObj]
+                comments: [...post.comments, { id: Date.now(), author: '익명', content: newComment }]
               }
             : post
         )
       )
-      setSelectedPost(prevPost => prevPost ? {
-        ...prevPost,
-        comments: [...prevPost.comments, newCommentObj]
-      } : null)
       setNewComment('')
-      setNewCommentAuthor('')
     }
   }
 
@@ -171,7 +197,7 @@ export default function Component() {
               <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <h1 className="text-2xl font-bold">Hapbooker!</h1>
+            <h1 className="text-2xl font-bold">도서관 운영시간 필터</h1>
           </div>
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="z-50 relative bg-[#42855B] p-2 rounded-full">
             {isMenuOpen ? <X size={24} className="text-white" /> : <Menu size={24} className="text-white" />}
@@ -226,8 +252,8 @@ export default function Component() {
                 </div>
               </div>
 
-              {showFilters && (
-                <div className="bg-white p-4 rounded-3xl shadow-lg mb-6 transition-all duration-300">
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="bg-white p-4 rounded-3xl shadow-lg mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <h3 className="font-semibold mb-2 flex items-center"><Clock className="mr-2" /> 평일 운영시간</h3>
@@ -290,7 +316,7 @@ export default function Component() {
                     필터 초기화
                   </button>
                 </div>
-              )}
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredLibraries.map(library => (
@@ -307,26 +333,31 @@ export default function Component() {
               {filteredLibraries.length === 0 && (
                 <p className="text-center mt-8 text-lg">검색 결과가 없습니다.</p>
               )}
-
-              {selectedLibrary && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                  <div className="bg-white p-6 rounded-3xl max-w-md w-full">
-                    <div className="flex justify-between items-start mb-4">
-                      <h2 className="text-2xl font-bold text-[#42855B]">{selectedLibrary.name}</h2>
-                      <button onClick={() => setSelectedLibrary(null)} className="text-[#90B77D] hover:text-[#42855B]">
-                        <X />
-                      </button>
-                    </div>
-                    <p className="mb-2"><strong>주소:</strong> {selectedLibrary.address}</p>
-                    <p className="mb-2"><strong>전화번호:</strong> {selectedLibrary.phone}</p>
-                    <p className="mb-2"><strong>평일:</strong> {selectedLibrary.weekdayOpen} - {selectedLibrary.weekdayClose}</p>
-                    <p className="mb-2"><strong>주말:</strong> {selectedLibrary.weekendOpen} - {selectedLibrary.weekendClose}</p>
-                    <p className="mb-2"><strong>공휴일:</strong> {selectedLibrary.holidayOpen} - {selectedLibrary.holidayClose}</p>
-                    <p><strong>휴관일:</strong> {selectedLibrary.closedDays.join(', ') || '없음'}</p>
-                  </div>
-                </div>
-              )}
             </>
+          )}
+
+          {activeView === 'libraries' && (
+            <div className="bg-white p-4 rounded-3xl shadow-lg">
+              <h2 className="text-2xl font-bold mb-4 text-[#42855B]">도서관 목록</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredLibraries.map(library => (
+                  <div key={library.id} className="bg-white p-4 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={() => setSelectedLibrary(library)}>
+                    <h2 className="text-xl font-bold mb-2 text-[#42855B]">{library.name}</h2>
+                    <p className="text-sm mb-1"><strong>평일:</strong> {library.weekdayOpen} - {library.weekdayClose}</p>
+                    <p className="text-sm mb-1"><strong>주말:</strong> {library.weekendOpen} - {library.weekendClose}</p>
+                    <p className="text-sm mb-1"><strong>공휴일:</strong> {library.holidayOpen} - {library.holidayClose}</p>
+                    <p className="text-sm"><strong>휴관일:</strong> {library.closedDays.join(', ') || '없음'}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeView === 'info' && (
+            <div className="bg-white p-4 rounded-3xl shadow-lg">
+              <h2 className="text-2xl font-bold mb-4 text-[#42855B]">이용안내</h2>
+              <p>용 안내 내용이 들어갈 자리입니다.</p>
+            </div>
           )}
 
           {activeView === 'community' && (
@@ -352,7 +383,7 @@ export default function Component() {
                   <p className="mt-2">{post.content}</p>
                   <div className="mt-2 flex items-center text-sm text-gray-500">
                     <button className="flex items-center mr-4" onClick={(e) => { e.stopPropagation(); handleLike(post.id); }}>
-                      <Heart size={16} className="mr-1" fill={post.likes > 0 ? 'currentColor' : 'none'} />
+                      <Heart size={16} className="mr-1" />
                       {post.likes}
                     </button>
                     <div className="flex items-center">
@@ -367,6 +398,70 @@ export default function Component() {
         </div>
       </main>
 
+      {selectedLibrary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white p-6 rounded-3xl max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-2xl font-bold text-[#42855B]">{selectedLibrary.name}</h2>
+              <button onClick={() => setSelectedLibrary(null)} className="text-[#90B77D] hover:text-[#42855B]">
+                <X />
+              </button>
+            </div>
+            <p className="mb-2"><strong>주소:</strong> {selectedLibrary.address}</p>
+            <p className="mb-2"><strong>전화번호:</strong> {selectedLibrary.phone}</p>
+            <p className="mb-2"><strong>평일:</strong> {selectedLibrary.weekdayOpen} - {selectedLibrary.weekdayClose}</p>
+            <p className="mb-2"><strong>주말:</strong> {selectedLibrary.weekendOpen} - {selectedLibrary.weekendClose}</p>
+            <p className="mb-2"><strong>공휴일:</strong> {selectedLibrary.holidayOpen} - {selectedLibrary.holidayClose}</p>
+            <p className="mb-4"><strong>휴관일:</strong> {selectedLibrary.closedDays.join(', ') || '없음'}</p>
+            
+            <h3 className="text-xl font-bold mb-2 text-[#42855B]">리뷰</h3>
+            {selectedLibrary.reviews.map(review => (
+              <div key={review.id} className="bg-[#F2F5C8] p-2 rounded-xl mb-2">
+                <div className="flex items-center mb-1">
+                  <p className="font-bold text-sm mr-2">{review.author || '익명'}</p>
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={16} className={i < review.rating ? 'text-yellow-400' : 'text-gray-300'} />
+                  ))}
+                </div>
+                <p className="text-sm">{review.content}</p>
+              </div>
+            ))}
+            
+            <form onSubmit={handleNewReview} className="mt-4">
+              <input
+                type="text"
+                value={newReview.author}
+                onChange={(e) => setNewReview({...newReview, author: e.target.value})}
+                placeholder="닉네임 (선택사항)"
+                className="w-full p-2 border rounded-full mb-2 focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
+              />
+              <div className="flex items-center mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={24}
+                    className={`cursor-pointer ${i < newReview.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                    onClick={() => setNewReview({...newReview, rating: i + 1})}
+                  />
+                ))}
+              </div>
+              <div className="flex">
+                <input
+                  type="text"
+                  value={newReview.content}
+                  onChange={(e) => setNewReview({...newReview, content: e.target.value})}
+                  placeholder="리뷰 작성..."
+                  className="flex-grow p-2 border rounded-l-full focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
+                />
+                <button type="submit" className="bg-[#90B77D] text-white p-2 rounded-r-full hover:bg-[#42855B]">
+                  <Send size={24} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {selectedPost && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white p-6 rounded-3xl max-w-md w-full max-h-[80vh] overflow-y-auto">
@@ -379,7 +474,7 @@ export default function Component() {
             <p className="mb-4">{selectedPost.content}</p>
             <div className="flex items-center mb-4">
               <button className="flex items-center mr-4" onClick={() => handleLike(selectedPost.id)}>
-                <Heart size={16} className="mr-1" fill={selectedPost.likes > 0 ? 'currentColor' : 'none'} />
+                <Heart size={16} className="mr-1" />
                 {selectedPost.likes}
               </button>
               <div className="flex items-center">
@@ -395,26 +490,17 @@ export default function Component() {
               </div>
             ))}
             <form onSubmit={handleNewComment} className="mt-4">
-              <div className="flex flex-col space-y-2"> {/* Updated comment form */}
+              <div className="flex">
                 <input
                   type="text"
-                  value={newCommentAuthor}
-                  onChange={(e) => setNewCommentAuthor(e.target.value)}
-                  placeholder="닉네임 (선택사항)"
-                  className="p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="댓글 작성..."
+                  className="flex-grow p-2 border rounded-l-full focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
                 />
-                <div className="flex">
-                  <input
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="댓글 작성..."
-                    className="flex-grow p-2 border rounded-l-full focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
-                  />
-                  <button type="submit" className="bg-[#90B77D] text-white p-2 rounded-r-full hover:bg-[#42855B]">
-                    <Send size={24} />
-                  </button>
-                </div>
+                <button type="submit" className="bg-[#90B77D] text-white p-2 rounded-r-full hover:bg-[#42855B]">
+                  <Send size={24} />
+                </button>
               </div>
             </form>
           </div>
@@ -424,7 +510,7 @@ export default function Component() {
       <footer className="bg-[#42855B] text-white p-4">
         <div className="max-w-[768px] mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
-            <p>&copy; 2024 Hapbooker!. All rights reserved.</p>
+            <p>&copy; 2024 도서관 운영시간 필터. All rights reserved.</p>
           </div>
           <div className="flex space-x-4">
             <a href="#" className="hover:text-[#90B77D] transition-colors duration-300">
