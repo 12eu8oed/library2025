@@ -1,530 +1,407 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ChevronDown, ChevronUp, Search, Clock, Calendar, Facebook, Twitter, Instagram, Menu, Star, Send, MessageCircle, Heart } from 'lucide-react'
+import { Inter } from 'next/font/google'
 
-type Review = {
-  id: number;
-  author: string;
-  content: string;
-  rating: number;
+const inter = Inter({ subsets: ['latin'] })
+
+const sigunguData = {
+  "서울특별시": ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"],
+  "부산광역시": ["강서구", "금정구", "남구", "동구", "동래구", "부산진구", "북구", "사상구", "사하구", "서구", "수영구", "연제구", "영도구", "중구", "해운대구", "기장군"],
+  "대구광역시": ["남구", "달서구", "동구", "북구", "서구", "수성구", "중구", "달성군"],
+  "인천광역시": ["계양구", "남동구", "동구", "미추홀구", "부평구", "서구", "연수구", "중구", "강화군", "옹진군"],
+  "광주광역시": ["광산구", "남구", "동구", "북구", "서구"],
+  "대전광역시": ["대덕구", "동구", "서구", "유성구", "중구"],
+  "울산광역시": ["남구", "동구", "북구", "중구", "울주군"],
+  "세종특별자치시": ["세종시"],
+  "경기도": ["고양시", "과천시", "광명시", "광주시", "구리시", "군포시", "김포시", "남양주시", "동두천시", "부천시", "성남시", "수원시", "시흥시", "안산시", "안성시", "안양시", "양주시", "오산시", "용인시", "의왕시", "의정부시", "이천시", "파주시", "평택시", "포천시", "하남시", "화성시", "가평군", "양평군", "여주시", "연천군"],
+  "강원도": ["강릉시", "동해시", "삼척시", "속초시", "원주시", "춘천시", "태백시", "고성군", "양구군", "양양군", "영월군", "인제군", "정선군", "철원군", "평창군", "홍천군", "화천군", "횡성군"],
+  "충청북도": ["제천시", "청주시", "충주시", "괴산군", "단양군", "보은군", "영동군", "옥천군", "음성군", "증평군", "진천군"],
+  "충청남도": ["계룡시", "공주시", "논산시", "당진시", "보령시", "서산시", "아산시", "천안시", "금산군", "부여군", "서천군", "예산군", "청양군", "태안군", "홍성군"],
+  "전라북도": ["군산시", "김제시", "남원시", "익산시", "전주시", "정읍시", "고창군", "무주군", "부안군", "순창군", "완주군", "임실군", "장수군", "진안군"],
+  "전라남도": ["광양시", "나주시", "목포시", "순천시", "여수시", "강진군", "고흥군", "곡성군", "구례군", "담양군", "무안군", "보성군", "신안군", "영광군", "영암군", "완도군", "장성군", "장흥군", "진도군", "함평군", "해남군", "화순군"],
+  "경상북도": ["경산시", "경주시", "구미시", "김천시", "문경시", "상주시", "안동시", "영주시", "영천시", "포항시", "고령군", "군위군", "봉화군", "성주군", "영덕군", "영양군", "예천군", "울릉군", "울진군", "의성군", "청도군", "청송군", "칠곡군"],
+  "경상남도": ["거제시", "김해시", "밀양시", "사천시", "양산시", "진주시", "창원시", "통영시", "거창군", "고성군", "남해군", "산청군", "의창군", "창녕군", "하동군", "함안군", "함양군", "합천군"],
+  "제주특별자치도": ["제주시", "서귀포시"]
+};
+
+interface Library {
+  lbrrySe: string;
+  lbrryNm: string;
+  weekdayOperOpenHhmm: string;
+  weekdayOperColseHhmm: string;
+  satOperOperOpenHhmm: string;
+  satOperCloseHhmm: string;
+  closeDay: string;
+  rdnmadr: string;
+  bookCo: number;
+  pblictnCo: number;
+  noneBookCo: number;
+  seatCo: number;
+  lonCo: number;
+  lonDaycnt: number;
+  operInstitutionNm: string;
+  phoneNumber: string;
 }
 
-type Library = {
-  id: number;
-  name: string;
-  weekdayOpen: string;
-  weekdayClose: string;
-  weekendOpen: string;
-  weekendClose: string;
-  holidayOpen: string;
-  holidayClose: string;
-  closedDays: string[];
-  address: string;
-  phone: string;
-  reviews: Review[];
-}
-
-type Post = {
-  id: number;
-  author: string;
-  content: string;
-  likes: number;
-  comments: { id: number; author: string; content: string; }[];
-}
-
-const libraries: Library[] = [
-  { id: 1, name: '중앙도서관', weekdayOpen: '09:00', weekdayClose: '22:00', weekendOpen: '09:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['일'], address: '서울시 중구 세종대로 110', phone: '02-1234-5678', reviews: [] },
-  { id: 2, name: '디지털도서관', weekdayOpen: '09:00', weekdayClose: '21:00', weekendOpen: '09:00', weekendClose: '18:00', holidayOpen: '10:00', holidayClose: '18:00', closedDays: ['월'], address: '서울시 강남구 테헤란로 152', phone: '02-2345-6789', reviews: [] },
-  { id: 3, name: '어린이도서관', weekdayOpen: '10:00', weekdayClose: '19:00', weekendOpen: '10:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['일', '월'], address: '서울시 송파구 올림픽로 300', phone: '02-3456-7890', reviews: [] },
-  { id: 4, name: '과학도서관', weekdayOpen: '08:30', weekdayClose: '20:00', weekendOpen: '09:00', weekendClose: '18:00', holidayOpen: '09:00', holidayClose: '18:00', closedDays: ['토', '일'], address: '대전시 유성구 대학로 291', phone: '042-1234-5678', reviews: [] },
-  { id: 5, name: '역사도서관', weekdayOpen: '09:00', weekdayClose: '18:00', weekendOpen: '10:00', weekendClose: '17:00', holidayOpen: '10:00', holidayClose: '17:00', closedDays: ['월', '화'], address: '경주시 불국로 26', phone: '054-2345-6789', reviews: [] },
-]
-
-const days = ['월', '화', '수', '목', '금', '토', '일']
-
-export default function Component() {
-  const [showFilters, setShowFilters] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState<{
-    weekdayOpen: string;
-    weekdayClose: string;
-    weekendOpen: string;
-    weekendClose: string;
-    holidayOpen: string;
-    holidayClose: string;
-    closedDays: string[];
-  }>({
-    weekdayOpen: '',
-    weekdayClose: '',
-    weekendOpen: '',
-    weekendClose: '',
-    holidayOpen: '',
-    holidayClose: '',
-    closedDays: [],
-  })
-  const [filteredLibraries, setFilteredLibraries] = useState<Library[]>(libraries)
-  const [selectedLibrary, setSelectedLibrary] = useState<Library | null>(null)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [newReview, setNewReview] = useState({ author: '', content: '', rating: 0 })
-  const [activeView, setActiveView] = useState('home')
-  const [communityPosts, setCommunityPosts] = useState([
-    { id: 1, author: '김도서', content: '새로 개관한 디지털도서관 정말 좋네요!', likes: 5, comments: [
-      { id: 1, author: '이독서', content: '저도 이렇게 생각해요! 시설이 정말 좋더라구요.' },
-      { id: 2, author: '박책읽기', content: '디지털 자료가 특히 잘 구비되어 있어서 좋았어요.' }
-    ]},
-    { id: 2, author: '이독서', content: '주말 독서모임 함께하실 분 계신가요?', likes: 3, comments: [
-      { id: 1, author: '최문학', content: '저도 관심 있어요! 어떤 책을 읽으실 예정인가요?' }
-    ]},
-  ])
-  const [newPost, setNewPost] = useState('')
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
-  const [newComment, setNewComment] = useState('')
+export default function Home() {
+  const [theme, setTheme] = useState('light')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [view, setView] = useState('search')
+  const [searchResults, setSearchResults] = useState<Library[]>([])
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const filtered = libraries.filter(library => {
-      const nameMatch = library.name.toLowerCase().includes(searchTerm.toLowerCase())
-      const weekdayOpenMatch = !filters.weekdayOpen || library.weekdayOpen >= filters.weekdayOpen
-      const weekdayCloseMatch = !filters.weekdayClose || library.weekdayClose <= filters.weekdayClose
-      const weekendOpenMatch = !filters.weekendOpen || library.weekendOpen >= filters.weekendOpen
-      const weekendCloseMatch = !filters.weekendClose || library.weekendClose <= filters.weekendClose
-      const holidayOpenMatch = !filters.holidayOpen || library.holidayOpen >= filters.holidayOpen
-      const holidayCloseMatch = !filters.holidayClose || library.holidayClose <= filters.holidayClose
-      const closedDaysMatch = filters.closedDays.length === 0 || filters.closedDays.every(day => library.closedDays.includes(day))
+    const savedTheme = localStorage.getItem('theme') || 'light'
+    setTheme(savedTheme)
+    document.documentElement.setAttribute('data-theme', savedTheme)
+  }, [])
 
-      return nameMatch && weekdayOpenMatch && weekdayCloseMatch && weekendOpenMatch && weekendCloseMatch && holidayOpenMatch && holidayCloseMatch && closedDaysMatch
-    })
-    setFilteredLibraries(filtered)
-  }, [searchTerm, filters])
-
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement
-    if (type === 'checkbox') {
-      setFilters(prev => ({
-        ...prev,
-        closedDays: checked
-          ? [...prev.closedDays, value]
-          : prev.closedDays.filter(day => day !== value)
-      }))
-    } else {
-      setFilters(prev => ({ ...prev, [name]: value }))
-    }
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(newTheme)
+    document.documentElement.setAttribute('data-theme', newTheme)
+    localStorage.setItem('theme', newTheme)
   }
 
-  const resetFilters = () => {
-    setFilters({
-      weekdayOpen: '',
-      weekdayClose: '',
-      weekendOpen: '',
-      weekendClose: '',
-      holidayOpen: '',
-      holidayClose: '',
-      closedDays: [],
-    })
-    setSearchTerm('')
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen)
   }
 
-  const generateTimeOptions = () => {
-    const options = []
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        options.push(<option key={time} value={time}>{time}</option>)
+  const toggleFilters = () => {
+    setFilterOpen(!filterOpen)
+  }
+
+  const showSearch = () => {
+    setView('search')
+    setMenuOpen(false)
+  }
+
+  const showCommunity = () => {
+    setView('community')
+    setMenuOpen(false)
+  }
+
+  const showWritePost = () => {
+    alert('글쓰기 기능은 준비중입니다.')
+  }
+
+  const searchLibraries = async () => {
+    setLoading(true);
+    try {
+      const serviceKey = process.env.NEXT_PUBLIC_LIBRARY_API_KEY;
+      if (!serviceKey) {
+        throw new Error('API 키가 설정되지 않았습니다.');
       }
-    }
-    return options
-  }
 
-  const handleNewReview = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (newReview.content.trim() && selectedLibrary) {
-      const updatedLibraries = libraries.map(lib => 
-        lib.id === (selectedLibrary as Library).id 
-          ? { ...lib, reviews: [...lib.reviews, { ...newReview, id: Date.now() }] }
-          : lib
-      )
-      setFilteredLibraries(updatedLibraries)
-      setSelectedLibrary({
-        ...selectedLibrary,
-        reviews: [...selectedLibrary.reviews, { ...newReview, id: Date.now() }]
-      })
-      setNewReview({ author: '', content: '', rating: 0 })
-    }
-  }
+      const libraryName = (document.getElementById('libraryName') as HTMLInputElement)?.value;
+      const sido = (document.getElementById('sido') as HTMLSelectElement)?.value;
+      const sigungu = (document.getElementById('sigungu') as HTMLSelectElement)?.value;
+      const operTime = (document.getElementById('operTime') as HTMLSelectElement)?.value;
+      const satOperTime = (document.getElementById('satOperTime') as HTMLSelectElement)?.value;
+      const closeDay = (document.getElementById('closeDay') as HTMLSelectElement)?.value;
+      
+      let url = `http://api.data.go.kr/openapi/tn_pubr_public_lbrry_api`;
+      url += `?serviceKey=${encodeURIComponent(serviceKey)}`;
+      url += `&pageNo=0&numOfRows=1000&type=json`;
+      
+      if (libraryName) url += `&lbrryNm=${encodeURIComponent(libraryName)}`;
+      if (sido) url += `&CTPRVN_NM=${encodeURIComponent(sido)}`;
+      if (sigungu) url += `&SIGNGU_NM=${encodeURIComponent(sigungu)}`;
+      if (operTime) url += `&weekdayOperColseHhmm=${encodeURIComponent(operTime)}`;
+      if (satOperTime) url += `&satOperCloseHhmm=${encodeURIComponent(satOperTime)}`;
 
-  const handleNewPost = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (newPost.trim()) {
-      setCommunityPosts([
-        { id: Date.now(), author: '익명', content: newPost, likes: 0, comments: [] },
-        ...communityPosts
-      ])
-      setNewPost('')
+      console.log('API 요청 URL:', url);
+      
+      const response = await fetch(url);
+      console.log('API 응답 상태:', response.status);
+      
+      const data = await response.json();
+      console.log('API 응답 데이터:', data);
+      
+      if (data.response?.body?.items) {
+        const filteredResults = data.response.body.items.filter((library: Library) => {
+          if (operTime && library.weekdayOperColseHhmm < operTime) return false;
+          if (satOperTime && library.satOperCloseHhmm < satOperTime) return false;
+          if (closeDay && !library.closeDay.includes(closeDay)) return false;
+          return true;
+        });
+        
+        console.log('필터링된 결과:', filteredResults);
+        setSearchResults(filteredResults);
+      } else {
+        console.log('검색 결과 없음');
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('도서관 데이터 조회 중 오류 발생:', error);
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
     }
-  }
-
-  const handleLike = (postId: number) => {
-    setCommunityPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId ? { ...post, likes: post.likes + 1 } : post
-      )
-    )
-  }
-
-  const handleNewComment = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (newComment.trim() && selectedPost) {
-      setCommunityPosts(prevPosts =>
-        prevPosts.map(post =>
-          selectedPost && post.id === selectedPost.id
-            ? {
-                ...post,
-                comments: [...post.comments, { id: Date.now(), author: '익명', content: newComment }]
-              }
-            : post
-        )
-      )
-      setNewComment('')
-    }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F2F5C8] text-[#2B2B2B]">
-      <header className="bg-[#90B77D] text-white p-4">
-        <div className="max-w-[768px] mx-auto flex justify-between items-center">
-          <div className="flex items-center">
-            <svg className="w-8 h-8 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <h1 className="text-2xl font-bold">도서관 운영시간 필터</h1>
-          </div>
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="z-50 relative bg-[#42855B] p-2 rounded-full">
-            {isMenuOpen ? <X size={24} className="text-white" /> : <Menu size={24} className="text-white" />}
-          </button>
-        </div>
-      </header>
+    <main className={`min-h-screen ${inter.className}`}>
+      <style jsx global>{`
+        :root {
+          --bg-color: #f1f8e9;
+          --text-color: #33691e;
+          --header-bg: #8bc34a;
+          --card-bg: rgba(255, 255, 255, 0.9);
+          --border-color: #dcedc8;
+          --menu-bg: rgba(255, 255, 255, 0.98);
+        }
 
-      <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300 ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsMenuOpen(false)}></div>
-      <nav className={`fixed right-0 top-0 h-full w-64 bg-[#42855B] z-50 transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <button 
-          onClick={() => setIsMenuOpen(false)} 
-          className="absolute top-4 right-4 bg-[#90B77D] p-2 rounded-full"
-        >
-          <X size={24} className="text-white" />
+        [data-theme="dark"] {
+          --bg-color: #1a1a1a;
+          --text-color: #b4d774;
+          --header-bg: #2c3e50;
+          --card-bg: rgba(40, 40, 40, 0.9);
+          --border-color: #2c3e50;
+          --menu-bg: rgba(30, 30, 30, 0.98);
+        }
+
+        body {
+          background-color: var(--bg-color);
+          color: var(--text-color);
+          max-width: 480px;
+          margin: 0 auto;
+          min-height: 100vh;
+        }
+
+        .header {
+          max-width: 480px;
+          margin: 0 auto;
+          width: 100%;
+        }
+
+        .filter-content {
+          max-height: 0;
+          overflow: hidden;
+          transition: all 0.3s ease-out;
+          opacity: 0;
+          transform: translateY(-20px);
+          padding: 0;
+          margin: 0;
+        }
+
+        .filter-content.show {
+          max-height: 1000px;
+          opacity: 1;
+          transform: translateY(0);
+          padding-top: 1rem;
+        }
+
+        .filter-group {
+          transition: all 0.3s ease-out;
+        }
+
+        @media (min-width: 481px) {
+          body {
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+          }
+        }
+      `}</style>
+
+      <div className="header fixed top-0 left-0 right-0 bg-[var(--header-bg)] p-3 shadow-md z-50 flex justify-between items-center h-14">
+        <h1 className="text-xl font-semibold text-white">도서관 찾기</h1>
+        <button className="text-white text-2xl p-2" onClick={toggleMenu}>
+          {menuOpen ? '✕' : '☰'}
         </button>
-        <div className="flex flex-col space-y-4 p-4 mt-20">
-          <button onClick={() => { setActiveView('home'); setIsMenuOpen(false); }} className="bg-[#90B77D] hover:bg-[#2D5D3D] text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
-            홈
-          </button>
-          <button onClick={() => { setActiveView('libraries'); setIsMenuOpen(false); }} className="bg-[#90B77D] hover:bg-[#2D5D3D] text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
-            도서관 목록
-          </button>
-          <button onClick={() => { setActiveView('info'); setIsMenuOpen(false); }} className="bg-[#90B77D] hover:bg-[#2D5D3D] text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
-            이용안내
-          </button>
-          <button onClick={() => { setActiveView('community'); setIsMenuOpen(false); }} className="bg-[#90B77D] hover:bg-[#2D5D3D] text-white font-bold py-2 px-4 rounded-full transition-colors duration-300">
-            커뮤니티
-          </button>
-        </div>
-      </nav>
+      </div>
 
-      <main className="flex-grow p-4">
-        <div className="max-w-[768px] mx-auto">
-          {activeView === 'home' && (
-            <>
-              <div className="mb-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="w-full sm:w-auto bg-[#90B77D] text-white px-4 py-2 rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[#42855B]"
+      {menuOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={toggleMenu}></div>
+      )}
+
+      <div className={`fixed top-0 right-0 w-70 h-full bg-[var(--menu-bg)] z-50 transition-transform duration-300 ease-in-out transform ${menuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="pt-14">
+          <div className="p-4 hover:bg-[var(--border-color)] cursor-pointer" onClick={showSearch}>
+            <span className="mr-2">🔍</span> 도서관 검색
+          </div>
+          <div className="p-4 hover:bg-[var(--border-color)] cursor-pointer" onClick={showCommunity}>
+            <span className="mr-2">💬</span> 커뮤니티
+          </div>
+          <div className="p-4 hover:bg-[var(--border-color)] cursor-pointer" onClick={toggleTheme}>
+            <span className="mr-2">🌓</span> 다크모드
+          </div>
+        </div>
+      </div>
+
+      {view === 'search' && (
+        <div className="pt-16 px-4">
+          <div className="bg-[var(--card-bg)] rounded-lg p-4 shadow-md">
+            <button
+              className="w-full p-3 bg-[var(--header-bg)] text-white rounded-lg font-medium flex justify-between items-center"
+              onClick={toggleFilters}
+            >
+              검색 필터
+              <span>{filterOpen ? '▲' : '▼'}</span>
+            </button>
+            <div className={`filter-content ${filterOpen ? 'show' : ''}`}>
+              <div className="filter-group space-y-4">
+                <input
+                  type="text"
+                  id="libraryName"
+                  placeholder="도서관 이름 검색"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                />
+                <select 
+                  id="sido" 
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                  onChange={(e) => {
+                    const sigunguSelect = document.getElementById('sigungu') as HTMLSelectElement;
+                    sigunguSelect.innerHTML = '<option value="">시/군/구 선택</option>';
+                    
+                    const selectedSido = e.target.value;
+                    const sigunguList = sigunguData[selectedSido as keyof typeof sigunguData] || [];
+                    
+                    sigunguList.forEach(sigungu => {
+                      const option = document.createElement('option');
+                      option.value = sigungu;
+                      option.textContent = sigungu;
+                      sigunguSelect.appendChild(option);
+                    });
+                  }}
                 >
-                  필터 {showFilters ? <ChevronUp className="ml-2" /> : <ChevronDown className="ml-2" />}
-                </button>
-                <div className="relative w-full sm:w-auto">
-                  <input
-                    type="text"
-                    placeholder="도서관 검색"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-64 pl-10 pr-4 py-2 rounded-full border-2 border-[#90B77D] focus:outline-none focus:border-[#42855B]"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#90B77D]" />
-                </div>
-              </div>
-
-              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="bg-white p-4 rounded-3xl shadow-lg mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <h3 className="font-semibold mb-2 flex items-center"><Clock className="mr-2" /> 평일 운영시간</h3>
-                      <div className="flex space-x-2">
-                        <select name="weekdayOpen" value={filters.weekdayOpen} onChange={handleFilterChange} className="w-full border rounded-full px-3 py-1 focus:outline-none focus:border-[#90B77D]">
-                          <option value="">시작</option>
-                          {generateTimeOptions()}
-                        </select>
-                        <select name="weekdayClose" value={filters.weekdayClose} onChange={handleFilterChange} className="w-full border rounded-full px-3 py-1 focus:outline-none focus:border-[#90B77D]">
-                          <option value="">종료</option>
-                          {generateTimeOptions()}
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 flex items-center"><Clock className="mr-2" /> 주말 운영시간</h3>
-                      <div className="flex space-x-2">
-                        <select name="weekendOpen" value={filters.weekendOpen} onChange={handleFilterChange} className="w-full border rounded-full px-3 py-1 focus:outline-none focus:border-[#90B77D]">
-                          <option value="">시작</option>
-                          {generateTimeOptions()}
-                        </select>
-                        <select name="weekendClose" value={filters.weekendClose} onChange={handleFilterChange} className="w-full border rounded-full px-3 py-1 focus:outline-none focus:border-[#90B77D]">
-                          <option value="">종료</option>
-                          {generateTimeOptions()}
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 flex items-center"><Clock className="mr-2" /> 공휴일 운영시간</h3>
-                      <div className="flex space-x-2">
-                        <select name="holidayOpen" value={filters.holidayOpen} onChange={handleFilterChange} className="w-full border rounded-full px-3 py-1 focus:outline-none focus:border-[#90B77D]">
-                          <option value="">시작</option>
-                          {generateTimeOptions()}
-                        </select>
-                        <select name="holidayClose" value={filters.holidayClose} onChange={handleFilterChange} className="w-full border rounded-full px-3 py-1 focus:outline-none focus:border-[#90B77D]">
-                          <option value="">종료</option>
-                          {generateTimeOptions()}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <h3 className="font-semibold mb-2 flex items-center"><Calendar className="mr-2" /> 휴관일</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {days.map(day => (
-                        <label key={day} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            value={day}
-                            checked={filters.closedDays.includes(day)}
-                            onChange={handleFilterChange}
-                            className="rounded text-[#90B77D] focus:ring-[#42855B]"
-                          />
-                          <span>{day}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <button onClick={resetFilters} className="w-full sm:w-auto bg-[#90B77D] text-white px-4 py-2 rounded-full hover:bg-[#42855B] transition-colors duration-300">
-                    필터 초기화
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredLibraries.map(library => (
-                  <div key={library.id} className="bg-white p-4 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={() => setSelectedLibrary(library)}>
-                    <h2 className="text-xl font-bold mb-2 text-[#42855B]">{library.name}</h2>
-                    <p className="text-sm mb-1"><strong>평일:</strong> {library.weekdayOpen} - {library.weekdayClose}</p>
-                    <p className="text-sm mb-1"><strong>주말:</strong> {library.weekendOpen} - {library.weekendClose}</p>
-                    <p className="text-sm mb-1"><strong>공휴일:</strong> {library.holidayOpen} - {library.holidayClose}</p>
-                    <p className="text-sm"><strong>휴관일:</strong> {library.closedDays.join(', ') || '없음'}</p>
-                  </div>
-                ))}
-              </div>
-
-              {filteredLibraries.length === 0 && (
-                <p className="text-center mt-8 text-lg">검색 결과가 없습니다.</p>
-              )}
-            </>
-          )}
-
-          {activeView === 'libraries' && (
-            <div className="bg-white p-4 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold mb-4 text-[#42855B]">도서관 목록</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredLibraries.map(library => (
-                  <div key={library.id} className="bg-white p-4 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={() => setSelectedLibrary(library)}>
-                    <h2 className="text-xl font-bold mb-2 text-[#42855B]">{library.name}</h2>
-                    <p className="text-sm mb-1"><strong>평일:</strong> {library.weekdayOpen} - {library.weekdayClose}</p>
-                    <p className="text-sm mb-1"><strong>주말:</strong> {library.weekendOpen} - {library.weekendClose}</p>
-                    <p className="text-sm mb-1"><strong>공휴일:</strong> {library.holidayOpen} - {library.holidayClose}</p>
-                    <p className="text-sm"><strong>휴관일:</strong> {library.closedDays.join(', ') || '없음'}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeView === 'info' && (
-            <div className="bg-white p-4 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold mb-4 text-[#42855B]">이용안내</h2>
-              <p>용 안내 내용이 들어갈 자리입니다.</p>
-            </div>
-          )}
-
-          {activeView === 'community' && (
-            <div className="bg-white p-4 rounded-3xl shadow-lg">
-              <h2 className="text-2xl font-bold mb-4 text-[#42855B]">커뮤니티</h2>
-              <form onSubmit={handleNewPost} className="mb-6">
-                <div className="flex">
-                  <input
-                    type="text"
-                    value={newPost}
-                    onChange={(e) => setNewPost(e.target.value)}
-                    placeholder="새 게시글 작성..."
-                    className="flex-grow p-2 border rounded-l-full focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
-                  />
-                  <button type="submit" className="bg-[#90B77D] text-white p-2 rounded-r-full hover:bg-[#42855B]">
-                    <Send size={24} />
-                  </button>
-                </div>
-              </form>
-              {communityPosts.map(post => (
-                <div key={post.id} className="bg-[#F2F5C8] p-4 rounded-2xl mb-4 cursor-pointer" onClick={() => setSelectedPost(post)}>
-                  <p className="font-bold">{post.author}</p>
-                  <p className="mt-2">{post.content}</p>
-                  <div className="mt-2 flex items-center text-sm text-gray-500">
-                    <button className="flex items-center mr-4" onClick={(e) => { e.stopPropagation(); handleLike(post.id); }}>
-                      <Heart size={16} className="mr-1" />
-                      {post.likes}
-                    </button>
-                    <div className="flex items-center">
-                      <MessageCircle size={16} className="mr-1" />
-                      {post.comments.length}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
-
-      {selectedLibrary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-3xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-2xl font-bold text-[#42855B]">{selectedLibrary.name}</h2>
-              <button onClick={() => setSelectedLibrary(null)} className="text-[#90B77D] hover:text-[#42855B]">
-                <X />
-              </button>
-            </div>
-            <p className="mb-2"><strong>주소:</strong> {selectedLibrary.address}</p>
-            <p className="mb-2"><strong>전화번호:</strong> {selectedLibrary.phone}</p>
-            <p className="mb-2"><strong>평일:</strong> {selectedLibrary.weekdayOpen} - {selectedLibrary.weekdayClose}</p>
-            <p className="mb-2"><strong>주말:</strong> {selectedLibrary.weekendOpen} - {selectedLibrary.weekendClose}</p>
-            <p className="mb-2"><strong>공휴일:</strong> {selectedLibrary.holidayOpen} - {selectedLibrary.holidayClose}</p>
-            <p className="mb-4"><strong>휴관일:</strong> {selectedLibrary.closedDays.join(', ') || '없음'}</p>
-            
-            <h3 className="text-xl font-bold mb-2 text-[#42855B]">리뷰</h3>
-            {selectedLibrary.reviews.map(review => (
-              <div key={review.id} className="bg-[#F2F5C8] p-2 rounded-xl mb-2">
-                <div className="flex items-center mb-1">
-                  <p className="font-bold text-sm mr-2">{review.author || '익명'}</p>
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} className={i < review.rating ? 'text-yellow-400' : 'text-gray-300'} />
-                  ))}
-                </div>
-                <p className="text-sm">{review.content}</p>
-              </div>
-            ))}
-            
-            <form onSubmit={handleNewReview} className="mt-4">
-              <input
-                type="text"
-                value={newReview.author}
-                onChange={(e) => setNewReview({...newReview, author: e.target.value})}
-                placeholder="닉네임 (선택사항)"
-                className="w-full p-2 border rounded-full mb-2 focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
-              />
-              <div className="flex items-center mb-2">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={24}
-                    className={`cursor-pointer ${i < newReview.rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                    onClick={() => setNewReview({...newReview, rating: i + 1})}
-                  />
-                ))}
-              </div>
-              <div className="flex">
-                <input
-                  type="text"
-                  value={newReview.content}
-                  onChange={(e) => setNewReview({...newReview, content: e.target.value})}
-                  placeholder="리뷰 작성..."
-                  className="flex-grow p-2 border rounded-l-full focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
-                />
-                <button type="submit" className="bg-[#90B77D] text-white p-2 rounded-r-full hover:bg-[#42855B]">
-                  <Send size={24} />
+                  <option value="">시/도 선택</option>
+                  <option value="서울특별시">서울특별시</option>
+                  <option value="부산광역시">부산광역시</option>
+                  <option value="대구광역시">대구광역시</option>
+                  <option value="인천광역시">인천광역시</option>
+                  <option value="광주광역시">광주광역시</option>
+                  <option value="대전광역시">대전광역시</option>
+                  <option value="울산광역시">울산광역시</option>
+                  <option value="세종특별자치시">세종특별자치시</option>
+                  <option value="경기도">경기도</option>
+                  <option value="강원도">강원도</option>
+                  <option value="충청북도">충청북도</option>
+                  <option value="충청남도">충청남도</option>
+                  <option value="전라북도">전라북도</option>
+                  <option value="전라남도">전라남도</option>
+                  <option value="경상북도">경상북도</option>
+                  <option value="경상남도">경상남도</option>
+                  <option value="제주특별자치도">제주특별자치도</option>
+                </select>
+                <select 
+                  id="sigungu" 
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">시/군/구 선택</option>
+                </select>
+                <select 
+                  id="operTime"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">평일 운영시간 선택</option>
+                  <option value="13:00">13시까지</option>
+                  <option value="14:00">14시까지</option>
+                  <option value="15:00">15시까지</option>
+                  <option value="16:00">16시까지</option>
+                  <option value="17:00">17시까지</option>
+                  <option value="18:00">18시까지</option>
+                  <option value="19:00">19시까지</option>
+                  <option value="20:00">20시까지</option>
+                  <option value="21:00">21시까지</option>
+                  <option value="22:00">22시까지</option>
+                  <option value="23:00">23시까지</option>
+                </select>
+                <select 
+                  id="satOperTime"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">토요일 운영시간 선택</option>
+                  <option value="13:00">13시까지</option>
+                  <option value="14:00">14시까지</option>
+                  <option value="15:00">15시까지</option>
+                  <option value="16:00">16시까지</option>
+                  <option value="17:00">17시까지</option>
+                  <option value="18:00">18시까지</option>
+                  <option value="19:00">19시까지</option>
+                  <option value="20:00">20시까지</option>
+                  <option value="21:00">21시까지</option>
+                  <option value="22:00">22시까지</option>
+                  <option value="23:00">23시까지</option>
+                </select>
+                <select 
+                  id="closeDay"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">휴관일 선택</option>
+                  <option value="월">월요일</option>
+                  <option value="화">화요일</option>
+                  <option value="수">수요일</option>
+                  <option value="목">목요일</option>
+                  <option value="금">금요일</option>
+                  <option value="토">토요일</option>
+                  <option value="일">일요일</option>
+                </select>
+                <button
+                  className="w-full p-4 bg-[var(--header-bg)] text-white rounded-lg font-medium"
+                  onClick={searchLibraries}
+                >
+                  도서관 검색하기
                 </button>
               </div>
-            </form>
+            </div>
+          </div>
+          <div className="mt-4">
+            {loading ? (
+              <div className="text-center p-4 bg-[var(--card-bg)] rounded-lg">검색중...</div>
+            ) : searchResults.length > 0 ? (
+              searchResults.map((library, index) => (
+                <div key={index} className="bg-[var(--card-bg)] rounded-lg p-4 mb-4 shadow-md">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">{library.lbrrySe}</span>
+                    <h2 className="text-lg font-semibold">{library.lbrryNm}</h2>
+                    <span className="bg-green-500 text-white px-2 py-1 rounded-full text-sm">운영중</span>
+                  </div>
+                  <div className="bg-[var(--bg-color)] rounded-lg p-2 mb-2">
+                    <p>⏰ 평일: {library.weekdayOperOpenHhmm} - {library.weekdayOperColseHhmm}</p>
+                    <p>📅 토요일: {library.satOperOperOpenHhmm} - {library.satOperCloseHhmm}</p>
+                    <p>🚫 휴관일: {library.closeDay}</p>
+                  </div>
+                  <p>📍 {library.rdnmadr}</p>
+                  <p>📚 총 장서: {library.bookCo.toLocaleString()}권</p>
+                  <p>📰 연속간행물: {library.pblictnCo.toLocaleString()}종</p>
+                  <p>💿 비도서자료: {library.noneBookCo.toLocaleString()}점</p>
+                  <p>💺 열람좌석: {library.seatCo.toLocaleString()}석</p>
+                  <p>🎫 대출권수: {library.lonCo}권 / {library.lonDaycnt}일</p>
+                  <p>🏢 운영기관: {library.operInstitutionNm}</p>
+                  <p>📞 {library.phoneNumber}</p>
+                </div>
+              ))
+            ) : (
+              <div className="text-center p-4 bg-[var(--card-bg)] rounded-lg">검색 결과가 없습니다</div>
+            )}
           </div>
         </div>
       )}
 
-      {selectedPost && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-3xl max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-2xl font-bold text-[#42855B]">{selectedPost.author}의 게시글</h2>
-              <button onClick={() => setSelectedPost(null)} className="text-[#90B77D] hover:text-[#42855B]">
-                <X />
-              </button>
+      {view === 'community' && (
+        <div className="pt-16 px-4">
+          <div className="bg-[var(--card-bg)] rounded-lg p-4 shadow-md mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-semibold">우리 동네 도서관 신간 들어왔어요!</h2>
+              <span className="text-sm text-[var(--text-color)] opacity-70">작성자 • 5분 전</span>
             </div>
-            <p className="mb-4">{selectedPost.content}</p>
-            <div className="flex items-center mb-4">
-              <button className="flex items-center mr-4" onClick={() => handleLike(selectedPost.id)}>
-                <Heart size={16} className="mr-1" />
-                {selectedPost.likes}
-              </button>
-              <div className="flex items-center">
-                <MessageCircle size={16} className="mr-1" />
-                {selectedPost.comments.length}
-              </div>
+            <p className="mb-4">오늘 도서관에 새로운 책들이 들어왔네요. 특히 IT 섹션이 많이 업데이트되었어요.</p>
+            <div className="flex gap-4 text-sm text-[var(--text-color)] opacity-70">
+              <span>👍 5</span>
+              <span>💬 3</span>
             </div>
-            <h3 className="font-bold mb-2">댓글</h3>
-            {selectedPost.comments.map(comment => (
-              <div key={comment.id} className="bg-[#F2F5C8] p-2 rounded-xl mb-2">
-                <p className="font-bold text-sm">{comment.author}</p>
-                <p className="text-sm">{comment.content}</p>
-              </div>
-            ))}
-            <form onSubmit={handleNewComment} className="mt-4">
-              <div className="flex">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="댓글 작성..."
-                  className="flex-grow p-2 border rounded-l-full focus:outline-none focus:ring-2 focus:ring-[#90B77D]"
-                />
-                <button type="submit" className="bg-[#90B77D] text-white p-2 rounded-r-full hover:bg-[#42855B]">
-                  <Send size={24} />
-                </button>
-              </div>
-            </form>
           </div>
+          <button
+            className="fixed bottom-5 right-5 w-14 h-14 bg-[var(--header-bg)] text-white rounded-full text-2xl shadow-lg flex items-center justify-center"
+            onClick={showWritePost}
+          >
+            ✏️
+          </button>
         </div>
       )}
-
-      <footer className="bg-[#42855B] text-white p-4">
-        <div className="max-w-[768px] mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <p>&copy; 2024 도서관 운영시간 필터. All rights reserved.</p>
-          </div>
-          <div className="flex space-x-4">
-            <a href="#" className="hover:text-[#90B77D] transition-colors duration-300">
-              <Facebook />
-            </a>
-            <a href="#" className="hover:text-[#90B77D] transition-colors duration-300">
-              <Twitter />
-            </a>
-            <a href="#" className="hover:text-[#90B77D] transition-colors duration-300">
-              <Instagram />
-            </a>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </main>
   )
 }
