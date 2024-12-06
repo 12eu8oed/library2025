@@ -91,6 +91,7 @@ export default function Home() {
     setLoading(true);
     try {
       const serviceKey = process.env.NEXT_PUBLIC_LIBRARY_API_KEY;
+      alert(serviceKey); // api키 Test
       if (!serviceKey) {
         throw new Error('API 키가 설정되지 않았습니다.');
       }
