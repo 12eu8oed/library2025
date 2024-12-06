@@ -90,8 +90,9 @@ export default function Home() {
   const searchLibraries = async () => {
     setLoading(true);
     try {
-      const serviceKey = process.env.NEXT_PUBLIC_LIBRARY_API_KEY;
-      alert(serviceKey); // api키 Test
+      // const serviceKey = process.env.NEXT_PUBLIC_LIBRARY_API_KEY;
+      const serviceKey = PBIpP/4F7bIX49M48pfiKnpB91ZqeeFNiUcNLLCXtbaHIVFuMVF+rGv0MQnSHbdY7QK4UW1lvRgdBtAjz4qeEQ==;
+      
       if (!serviceKey) {
         throw new Error('API 키가 설정되지 않았습니다.');
       }
