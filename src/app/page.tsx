@@ -107,7 +107,7 @@ export default function Home() {
 
       const response = await fetch(`/api/library?${params}`);
       const data = await response.json();
-      console.log('API 응답 데이터:', data);
+      console.log('API 응답 데이터어:', data);
       
       if (data.response?.body?.items) {
         const filteredResults = data.response.body.items.filter((library: Library) => {
