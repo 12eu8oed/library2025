@@ -27,6 +27,14 @@ export async function GET(request: Request) {
     const response = await fetch(url);
     const data = await response.json();
 
+    if (data.response?.body?.items) {
+      data.response.body.items = data.response.body.items.map((item: any) => ({
+        ...item,
+        latitude: item.latitude || item.refine_WGS84_LAT,
+        longitude: item.longitude || item.refine_WGS84_LOGT
+      }));
+    }
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('도서관 API 에러:', error);
