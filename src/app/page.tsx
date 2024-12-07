@@ -90,11 +90,6 @@ export default function Home() {
   const searchLibraries = async () => {
     setLoading(true);
     try {
-      const serviceKey = process.env.NEXT_PUBLIC_LIBRARY_API_KEY;
-      if (!serviceKey) {
-        throw new Error('API 키가 설정되지 않았습니다.');
-      }
-
       const libraryName = (document.getElementById('libraryName') as HTMLInputElement)?.value;
       const sido = (document.getElementById('sido') as HTMLSelectElement)?.value;
       const sigungu = (document.getElementById('sigungu') as HTMLSelectElement)?.value;
@@ -102,21 +97,15 @@ export default function Home() {
       const satOperTime = (document.getElementById('satOperTime') as HTMLSelectElement)?.value;
       const closeDay = (document.getElementById('closeDay') as HTMLSelectElement)?.value;
       
-      let url = `http://api.data.go.kr/openapi/tn_pubr_public_lbrry_api`;
-      url += `?serviceKey=${encodeURIComponent(serviceKey)}`;
-      url += `&pageNo=0&numOfRows=1000&type=json`;
-      
-      if (libraryName) url += `&lbrryNm=${encodeURIComponent(libraryName)}`;
-      if (sido) url += `&CTPRVN_NM=${encodeURIComponent(sido)}`;
-      if (sigungu) url += `&SIGNGU_NM=${encodeURIComponent(sigungu)}`;
-      if (operTime) url += `&weekdayOperColseHhmm=${encodeURIComponent(operTime)}`;
-      if (satOperTime) url += `&satOperCloseHhmm=${encodeURIComponent(satOperTime)}`;
+      const params = new URLSearchParams({
+        ...(libraryName && { libraryName }),
+        ...(sido && { sido }),
+        ...(sigungu && { sigungu }),
+        ...(operTime && { operTime }),
+        ...(satOperTime && { satOperTime })
+      });
 
-      console.log('API 요청 URL:', url);
-      
-      const response = await fetch(url);
-      console.log('API 응답 상태:', response.status);
-      
+      const response = await fetch(`/api/library?${params}`);
       const data = await response.json();
       console.log('API 응답 데이터:', data);
       
