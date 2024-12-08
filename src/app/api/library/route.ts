@@ -1,5 +1,13 @@
 import { NextResponse } from 'next/server';
 
+interface LibraryItem {
+  latitude: number;
+  longitude: number;
+  refine_WGS84_LAT?: number;
+  refine_WGS84_LOGT?: number;
+  [key: string]: any;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,7 +36,7 @@ export async function GET(request: Request) {
     const data = await response.json();
 
     if (data.response?.body?.items) {
-      data.response.body.items = data.response.body.items.map((item: any) => ({
+      data.response.body.items = data.response.body.items.map((item: LibraryItem) => ({
         ...item,
         latitude: item.latitude || item.refine_WGS84_LAT,
         longitude: item.longitude || item.refine_WGS84_LOGT

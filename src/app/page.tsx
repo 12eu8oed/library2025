@@ -2,17 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Inter } from 'next/font/google'
-import dynamic from 'next/dynamic'
 import 'leaflet/dist/leaflet.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
 // Leaflet 관련 코드를 클라이언트 사이드에서만 실행
-let L: any
+let L: typeof import('leaflet')
 if (typeof window !== 'undefined') {
-  L = require('leaflet')
+  L = require('leaflet') as typeof import('leaflet')
   // 마커 아이콘 수정
-  delete L.Icon.Default.prototype._getIconUrl
+  delete (L.Icon.Default.prototype as any)._getIconUrl
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
