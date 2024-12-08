@@ -5,7 +5,22 @@ interface LibraryItem {
   longitude: number;
   refine_WGS84_LAT?: number;
   refine_WGS84_LOGT?: number;
-  [key: string]: any;
+  lbrrySe: string;
+  lbrryNm: string;
+  weekdayOperOpenHhmm: string;
+  weekdayOperColseHhmm: string;
+  satOperOperOpenHhmm: string;
+  satOperCloseHhmm: string;
+  closeDay: string;
+  rdnmadr: string;
+  bookCo: number;
+  pblictnCo: number;
+  noneBookCo: number;
+  seatCo: number;
+  lonCo: number;
+  lonDaycnt: number;
+  operInstitutionNm: string;
+  phoneNumber: string;
 }
 
 export async function GET(request: Request) {
@@ -38,8 +53,8 @@ export async function GET(request: Request) {
     if (data.response?.body?.items) {
       data.response.body.items = data.response.body.items.map((item: LibraryItem) => ({
         ...item,
-        latitude: item.latitude || item.refine_WGS84_LAT,
-        longitude: item.longitude || item.refine_WGS84_LOGT
+        latitude: item.latitude || item.refine_WGS84_LAT || 0,
+        longitude: item.longitude || item.refine_WGS84_LOGT || 0
       }));
     }
 

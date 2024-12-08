@@ -3,20 +3,30 @@
 import { useState, useEffect, useRef } from 'react'
 import { Inter } from 'next/font/google'
 import 'leaflet/dist/leaflet.css'
+import type { Map, LayerGroup } from 'leaflet'
 
 const inter = Inter({ subsets: ['latin'] })
 
-// Leaflet 관련 코드를 클라이언트 사이드에서만 실행
-let L: typeof import('leaflet')
-if (typeof window !== 'undefined') {
-  L = require('leaflet') as typeof import('leaflet')
-  // 마커 아이콘 수정
-  delete (L.Icon.Default.prototype as any)._getIconUrl
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-  })
+// Leaflet 타입 정의
+interface LeafletInstance {
+  map: typeof import('leaflet')
+}
+
+let leaflet: LeafletInstance['map'] | null = null
+
+// Leaflet 초기화 함수
+async function initializeLeaflet() {
+  if (typeof window !== 'undefined' && !leaflet) {
+    const L = await import('leaflet')
+    leaflet = L
+    delete (L.Icon.Default.prototype as any)._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    })
+  }
+  return leaflet
 }
 
 const sigunguData = {
@@ -69,25 +79,23 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [selectedLibrary, setSelectedLibrary] = useState<Library | null>(null)
   const [showModal, setShowModal] = useState(false)
-  const mapRef = useRef<L.Map | null>(null)
-  const markersRef = useRef<L.LayerGroup | null>(null)
-  const detailMapRef = useRef<L.Map | null>(null)
+  const mapRef = useRef<Map | null>(null)
+  const markersRef = useRef<LayerGroup | null>(null)
+  const detailMapRef = useRef<Map | null>(null)
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light'
-    setTheme(savedTheme)
-    document.documentElement.setAttribute('data-theme', savedTheme)
-  }, [])
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !mapRef.current) {
-      const map = L.map('map').setView([36.5, 127.5], 7)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map)
-      mapRef.current = map
-      markersRef.current = L.layerGroup().addTo(map)
+    const initMap = async () => {
+      const L = await initializeLeaflet()
+      if (L && typeof window !== 'undefined' && !mapRef.current) {
+        const map = L.map('map').setView([36.5, 127.5], 7)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map)
+        mapRef.current = map
+        markersRef.current = L.layerGroup().addTo(map)
+      }
     }
+    initMap()
   }, [])
 
   /**
@@ -96,45 +104,53 @@ export default function Home() {
    * 모든 마커의 위치를 포함하도록 지도의 뷰를 조정합니다.
    */
   useEffect(() => {
-    if (markersRef.current && searchResults.length > 0) {
-      markersRef.current.clearLayers()
-      const bounds = L.latLngBounds([])
+    const updateMarkers = async () => {
+      const L = await initializeLeaflet()
+      if (markersRef.current && searchResults.length > 0 && L) {
+        markersRef.current.clearLayers()
+        const bounds = L.latLngBounds([])
 
-      searchResults.forEach((library) => {
-        if (library.latitude && library.longitude) {
-          const marker = L.marker([library.latitude, library.longitude])
-            .bindPopup(`
-              <div style="min-width: 200px;">
-                <h3 style="font-weight: bold; margin-bottom: 8px;">${library.lbrryNm}</h3>
-                <p style="font-size: 0.9em; margin-bottom: 4px;">📍 ${library.rdnmadr}</p>
-                <p style="font-size: 0.9em;">⏰ ${library.weekdayOperOpenHhmm} - ${library.weekdayOperColseHhmm}</p>
-              </div>
-            `)
-          marker.addTo(markersRef.current!)
-          bounds.extend([library.latitude, library.longitude])
+        searchResults.forEach((library) => {
+          if (library.latitude && library.longitude) {
+            const marker = L.marker([library.latitude, library.longitude])
+              .bindPopup(`
+                <div style="min-width: 200px;">
+                  <h3 style="font-weight: bold; margin-bottom: 8px;">${library.lbrryNm}</h3>
+                  <p style="font-size: 0.9em; margin-bottom: 4px;">📍 ${library.rdnmadr}</p>
+                  <p style="font-size: 0.9em;">⏰ ${library.weekdayOperOpenHhmm} - ${library.weekdayOperColseHhmm}</p>
+                </div>
+              `)
+            marker.addTo(markersRef.current!)
+            bounds.extend([library.latitude, library.longitude])
+          }
+        })
+
+        if (bounds.isValid()) {
+          mapRef.current?.fitBounds(bounds, { padding: [50, 50] })
         }
-      })
-
-      if (bounds.isValid()) {
-        mapRef.current?.fitBounds(bounds, { padding: [50, 50] })
       }
     }
+    updateMarkers()
   }, [searchResults])
 
   useEffect(() => {
-    if (showModal && selectedLibrary && !detailMapRef.current) {
-      setTimeout(() => {
-        const detailMap = L.map('detail-map').setView(
-          [selectedLibrary.latitude, selectedLibrary.longitude],
-          15
-        )
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(detailMap)
-        L.marker([selectedLibrary.latitude, selectedLibrary.longitude]).addTo(detailMap)
-        detailMapRef.current = detailMap
-      }, 100)
+    const initDetailMap = async () => {
+      const L = await initializeLeaflet()
+      if (showModal && selectedLibrary && !detailMapRef.current && L) {
+        setTimeout(() => {
+          const detailMap = L.map('detail-map').setView(
+            [selectedLibrary.latitude, selectedLibrary.longitude],
+            15
+          )
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(detailMap)
+          L.marker([selectedLibrary.latitude, selectedLibrary.longitude]).addTo(detailMap)
+          detailMapRef.current = detailMap
+        }, 100)
+      }
     }
+    initDetailMap()
 
     if (!showModal && detailMapRef.current) {
       detailMapRef.current.remove()
