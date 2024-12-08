@@ -174,9 +174,9 @@ export default function Home() {
     setMenuOpen(!menuOpen)
   }
 
-  const toggleFilters = () => {
-    setFilterOpen(!filterOpen)
-  }
+  // const toggleFilters = () => {
+  //   setFilterOpen(!filterOpen)
+  // }
 
   const showSearch = () => {
     setView('search')
