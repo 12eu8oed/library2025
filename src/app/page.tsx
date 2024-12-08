@@ -19,11 +19,7 @@ async function initializeLeaflet() {
   if (typeof window !== 'undefined' && !leaflet) {
     const L = await import('leaflet')
     leaflet = L
-    // any 타입을 명시적인 타입으로 변경
-    const icon = L.Icon.Default.prototype as {
-      _getIconUrl?: () => string;
-    };
-    delete icon._getIconUrl;
+    delete (L.Icon.Default.prototype as any)._getIconUrl
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
       iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -77,7 +73,7 @@ interface Library {
 export default function Home() {
   const [theme, setTheme] = useState('light')
   const [menuOpen, setMenuOpen] = useState(false)
-  // const [filterOpen, setFilterOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
   const [view, setView] = useState('search')
   const [searchResults, setSearchResults] = useState<Library[]>([])
   const [loading, setLoading] = useState(false)
@@ -157,8 +153,8 @@ export default function Home() {
     initDetailMap()
 
     if (!showModal && detailMapRef.current) {
-      detailMapRef.current.remove() // 상세 지도 제거
-      detailMapRef.current = null // 상세 지도 참조 제거
+      detailMapRef.current.remove()
+      detailMapRef.current = null
     }
   }, [showModal, selectedLibrary])
 
@@ -178,9 +174,9 @@ export default function Home() {
     setMenuOpen(!menuOpen)
   }
 
-  // const toggleFilters = () => {
-  //   setFilterOpen(!filterOpen)
-  // }
+  const toggleFilters = () => {
+    setFilterOpen(!filterOpen)
+  }
 
   const showSearch = () => {
     setView('search')
