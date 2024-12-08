@@ -73,7 +73,7 @@ interface Library {
 export default function Home() {
   const [theme, setTheme] = useState('light')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [filterOpen, setFilterOpen] = useState(false)
+  // const [filterOpen, setFilterOpen] = useState(false)
   const [view, setView] = useState('search')
   const [searchResults, setSearchResults] = useState<Library[]>([])
   const [loading, setLoading] = useState(false)
