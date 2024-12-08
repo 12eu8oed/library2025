@@ -153,8 +153,8 @@ export default function Home() {
     initDetailMap()
 
     if (!showModal && detailMapRef.current) {
-      detailMapRef.current.remove()
-      detailMapRef.current = null
+      detailMapRef.current.remove() // 상세 지도 제거
+      detailMapRef.current = null // 상세 지도 참조 제거
     }
   }, [showModal, selectedLibrary])
 
