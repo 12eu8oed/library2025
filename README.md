@@ -18,7 +18,7 @@
 - **PWA 지원**: next-pwa
 - **API**: 공공데이터포털 공공도서관 API
 
-## 🚀 시작하기
+<!-- ## 🚀 시작하기
 
 1. 프로젝트 클론
 \`\`\`bash
@@ -50,7 +50,7 @@ npm run dev
     - \`sido\`: 시/도
     - \`sigungu\`: 시/군/구
     - \`operTime\`: 평일 운영시간
-    - \`satOperTime\`: 토요일 운영시간
+    - \`satOperTime\`: 토요일 운영시간 -->
 
 ## 🎨 UI/UX 특징
 
