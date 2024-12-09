@@ -73,7 +73,7 @@ interface Library {
 export default function Home() {
   const [theme, setTheme] = useState('light')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(true)
   const [view, setView] = useState('search')
   const [searchResults, setSearchResults] = useState<Library[]>([])
   const [loading, setLoading] = useState(false)
@@ -249,6 +249,12 @@ export default function Home() {
           --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
           --transition: all 0.3s ease;
           --menu-icon-color: #33691e;
+          --card-hover-bg: #ffffff;
+          --status-active: #4caf50;
+          --status-bg: #e8f5e9;
+          --modal-bg: #ffffff;
+          --modal-overlay: rgba(0, 0, 0, 0.5);
+          --info-bg: rgba(241, 248, 233, 0.6);
         }
 
         [data-theme="dark"] {
@@ -259,6 +265,12 @@ export default function Home() {
           --border-color: #2c3e50;
           --menu-bg: rgba(30, 30, 30, 0.98);
           --menu-icon-color: #ffffff;
+          --card-hover-bg: #2d2d2d;
+          --status-active: #81c784;
+          --status-bg: #1b5e20;
+          --modal-bg: #2d2d2d;
+          --modal-overlay: rgba(0, 0, 0, 0.7);
+          --info-bg: rgba(44, 62, 80, 0.6);
         }
 
         body {
@@ -331,6 +343,17 @@ export default function Home() {
           border-radius: 20px !important;
           transition: var(--transition);
           box-shadow: var(--shadow);
+          border: 1px solid var(--border-color);
+          background-color: var(--card-bg);
+          padding: 1.25rem;
+          margin-bottom: 1rem;
+          cursor: pointer;
+        }
+
+        .library-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+          background-color: var(--card-hover-bg);
         }
 
         .library-card:active {
@@ -345,6 +368,9 @@ export default function Home() {
         .modal-content {
           border-radius: 25px !important;
           overflow: hidden;
+          background-color: var(--modal-bg);
+          box-shadow: var(--shadow);
+          border: 1px solid var(--border-color);
         }
 
         .leaflet-container {
@@ -373,7 +399,6 @@ export default function Home() {
         .filter-section {
           background: var(--card-bg);
           border-radius: 20px !important;
-          padding: 20px;
           margin-bottom: 20px;
           box-shadow: var(--shadow);
           backdrop-filter: blur(10px);
@@ -424,111 +449,138 @@ export default function Home() {
       </div>
 
       {view === 'search' && (
-        <div className="pt-20 pb-6">
-          <div className="filter-section">
-            <div className="filter-group space-y-4">
-              <input
-                type="text"
-                id="libraryName"
-                placeholder="도서관 이름 검색"
-                className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
-              />
-              <select 
-                id="sido" 
-                className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
-                onChange={(e) => {
-                  const sigunguSelect = document.getElementById('sigungu') as HTMLSelectElement;
-                  sigunguSelect.innerHTML = '<option value="">시/군/구 선택</option>';
-                  
-                  const selectedSido = e.target.value;
-                  const sigunguList = sigunguData[selectedSido as keyof typeof sigunguData] || [];
-                  
-                  sigunguList.forEach(sigungu => {
-                    const option = document.createElement('option');
-                    option.value = sigungu;
-                    option.textContent = sigungu;
-                    sigunguSelect.appendChild(option);
-                  });
-                }}
-              >
-                <option value="">시/도 선택</option>
-                <option value="서울특별시">서울특별시</option>
-                <option value="부산광역시">부산광역시</option>
-                <option value="대구광역시">대구광역시</option>
-                <option value="인천광역시">인천광역시</option>
-                <option value="광주광역시">광주광역시</option>
-                <option value="대전광역시">대전광역시</option>
-                <option value="울산광역시">울산광역시</option>
-                <option value="세종특별자치시">세종특별자치시</option>
-                <option value="경기도">경기도</option>
-                <option value="강원도">강원도</option>
-                <option value="충청북도">충청북도</option>
-                <option value="충청남도">충청남도</option>
-                <option value="전라북도">전라북도</option>
-                <option value="전라남도">전라남도</option>
-                <option value="경상북도">경상북도</option>
-                <option value="경상남도">경상남도</option>
-                <option value="제주시특별자치도">제주시특별자치도</option>
-              </select>
-              <select 
-                id="sigungu" 
-                className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
-              >
-                <option value="">시/군/구 선택</option>
-              </select>
-              <select 
-                id="operTime"
-                className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
-              >
-                <option value="">평일 운영시간 선택</option>
-                <option value="13:00">13시까지</option>
-                <option value="14:00">14시까지</option>
-                <option value="15:00">15시까지</option>
-                <option value="16:00">16시까지</option>
-                <option value="17:00">17시까지</option>
-                <option value="18:00">18시까지</option>
-                <option value="19:00">19시까지</option>
-                <option value="20:00">20시까지</option>
-                <option value="21:00">21시까지</option>
-                <option value="22:00">22시까지</option>
-                <option value="23:00">23시까지</option>
-              </select>
-              <select 
-                id="satOperTime"
-                className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
-              >
-                <option value="">토요일 운영시간 선택</option>
-                <option value="13:00">13시까지</option>
-                <option value="14:00">14시까지</option>
-                <option value="15:00">15시까지</option>
-                <option value="16:00">16시까지</option>
-                <option value="17:00">17시까지</option>
-                <option value="18:00">18시까지</option>
-                <option value="19:00">19시까지</option>
-                <option value="20:00">20시까지</option>
-                <option value="21:00">21시까지</option>
-                <option value="22:00">22시까지</option>
-                <option value="23:00">23시까지</option>
-              </select>
-              <select 
-                id="closeDay"
-                className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
-              >
-                <option value="">휴관일 선택</option>
-                <option value="월">월요일</option>
-                <option value="화">화요일</option>
-                <option value="수">수요일</option>
-                <option value="목">목요일</option>
-                <option value="금">금요일</option>
-                <option value="토">토요일</option>
-                <option value="일">일요일</option>
-              </select>
-              <button
-                className="w-full p-4 bg-[var(--header-bg)] text-white rounded-lg font-medium"
-                onClick={searchLibraries}
-              >
-                도서관 검색하기
-              </button>
+        <div className="pt-20 pb-6 px-4">
+          <div className="filter-section bg-[var(--card-bg)] rounded-xl shadow-lg">
+            <div 
+              className="flex justify-between items-center p-4 cursor-pointer hover:bg-[var(--border-color)] rounded-t-xl transition-colors"
+              onClick={() => setFilterOpen(!filterOpen)}
+            >
+              <div className="flex items-center gap-2">
+                <svg 
+                  className={`w-5 h-5 transform transition-transform duration-300 ${filterOpen ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24" 
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+                <h3 className="text-lg font-semibold">검색 필터</h3>
+              </div>
+              {/* <span className="text-sm text-[var(--text-color)] opacity-70">
+                {filterOpen ? '필터 접기' : '필터 펼치기'}
+              </span> */}
+            </div>
+            <div className={`transition-all duration-300 ease-in-out ${filterOpen ? 'max-h-[1000px] opacity-100 p-4' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+              <div className="filter-group space-y-4">
+                <input
+                  type="text"
+                  id="libraryName"
+                  placeholder="도서관 이름 검색"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                />
+                <select 
+                  id="sido" 
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                  onChange={(e) => {
+                    const sigunguSelect = document.getElementById('sigungu') as HTMLSelectElement;
+                    sigunguSelect.innerHTML = '<option value="">시/군/구 선택</option>';
+                    
+                    const selectedSido = e.target.value;
+                    const sigunguList = sigunguData[selectedSido as keyof typeof sigunguData] || [];
+                    
+                    sigunguList.forEach(sigungu => {
+                      const option = document.createElement('option');
+                      option.value = sigungu;
+                      option.textContent = sigungu;
+                      sigunguSelect.appendChild(option);
+                    });
+                  }}
+                >
+                  <option value="">시/도 선택</option>
+                  <option value="서울특별시">서울특별시</option>
+                  <option value="부산광역시">부산광역시</option>
+                  <option value="대구광역시">대구광역시</option>
+                  <option value="인천광역시">인천광역시</option>
+                  <option value="광주광역시">광주광역시</option>
+                  <option value="대전광역시">대전광역시</option>
+                  <option value="울산광역시">울산광역시</option>
+                  <option value="세종특별자치시">세종특별자치시</option>
+                  <option value="경기도">경기도</option>
+                  <option value="강원도">강원도</option>
+                  <option value="충청북도">충청북도</option>
+                  <option value="충청남도">충청남도</option>
+                  <option value="전라북도">전라북도</option>
+                  <option value="전라남도">전라남도</option>
+                  <option value="경상북도">경상북도</option>
+                  <option value="경상남도">경상남도</option>
+                  <option value="제주시특별자치도">제주시특별자치도</option>
+                </select>
+                <select 
+                  id="sigungu" 
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">시/군/구 선택</option>
+                </select>
+                <select 
+                  id="operTime"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">평일 운영시간 선택</option>
+                  <option value="13:00">13시까지</option>
+                  <option value="14:00">14시까지</option>
+                  <option value="15:00">15시까지</option>
+                  <option value="16:00">16시까지</option>
+                  <option value="17:00">17시까지</option>
+                  <option value="18:00">18시까지</option>
+                  <option value="19:00">19시까지</option>
+                  <option value="20:00">20시까지</option>
+                  <option value="21:00">21시까지</option>
+                  <option value="22:00">22시까지</option>
+                  <option value="23:00">23시까지</option>
+                </select>
+                <select 
+                  id="satOperTime"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">토요일 운영시간 선택</option>
+                  <option value="13:00">13시까지</option>
+                  <option value="14:00">14시까지</option>
+                  <option value="15:00">15시까지</option>
+                  <option value="16:00">16시까지</option>
+                  <option value="17:00">17시까지</option>
+                  <option value="18:00">18시까지</option>
+                  <option value="19:00">19시까지</option>
+                  <option value="20:00">20시까지</option>
+                  <option value="21:00">21시까지</option>
+                  <option value="22:00">22시까지</option>
+                  <option value="23:00">23시까지</option>
+                </select>
+                <select 
+                  id="closeDay"
+                  className="w-full p-3 border border-[var(--border-color)] rounded-lg bg-[var(--card-bg)] text-[var(--text-color)]"
+                >
+                  <option value="">휴관일 선택</option>
+                  <option value="월">월요일</option>
+                  <option value="화">화요일</option>
+                  <option value="수">수요일</option>
+                  <option value="목">목요일</option>
+                  <option value="금">금요일</option>
+                  <option value="토">토요일</option>
+                  <option value="일">일요일</option>
+                </select>
+                <button
+                  className="w-full p-4 bg-[var(--header-bg)] text-white rounded-lg font-medium"
+                  onClick={searchLibraries}
+                >
+                  도서관 검색하기
+                </button>
+              </div>
             </div>
           </div>
           <div className="mt-4">
@@ -542,20 +594,38 @@ export default function Home() {
                 {searchResults.map((library, index) => (
                   <div
                     key={index}
-                    className="library-card p-4"
+                    className="library-card hover:border-[var(--header-bg)]"
                     onClick={() => showLibraryDetail(library)}
                   >
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">{library.lbrrySe}</span>
-                      <h2 className="text-lg font-semibold">{library.lbrryNm}</h2>
-                      <span className="bg-green-500 text-white px-2 py-1 rounded-full text-sm">운영중</span>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-1 text-sm rounded-full bg-[var(--status-bg)] text-[var(--status-active)]">
+                          {library.lbrrySe}
+                        </span>
+                        <h2 className="text-lg font-semibold">{library.lbrryNm}</h2>
+                      </div>
+                      <span className="px-2 py-1 text-sm rounded-full bg-[var(--status-bg)] text-[var(--status-active)]">
+                        운영중
+                      </span>
                     </div>
-                    <div className="bg-[var(--bg-color)] rounded-lg p-2 mb-2">
-                      <p>⏰ 평일: {library.weekdayOperOpenHhmm} - {library.weekdayOperColseHhmm}</p>
-                      <p>📅 토요일: {library.satOperOperOpenHhmm} - {library.satOperCloseHhmm}</p>
-                      <p>🚫 휴관일: {library.closeDay}</p>
+                    <div className="bg-[var(--bg-color)] rounded-lg p-3 mb-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[var(--text-color)]">⏰</span>
+                        <p>평일: {library.weekdayOperOpenHhmm} - {library.weekdayOperColseHhmm}</p>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[var(--text-color)]">📅</span>
+                        <p>토요일: {library.satOperOperOpenHhmm} - {library.satOperCloseHhmm}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[var(--text-color)]">🚫</span>
+                        <p>휴관일: {library.closeDay}</p>
+                      </div>
                     </div>
-                    <p>📍 {library.rdnmadr}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[var(--text-color)]">📍</span>
+                      <p className="text-sm">{library.rdnmadr}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -567,27 +637,74 @@ export default function Home() {
       )}
 
       {showModal && selectedLibrary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 overflow-y-auto">
-          <div className="modal-content bg-white mx-4 my-8 max-w-2xl md:mx-auto">
+        <div className="fixed inset-0 bg-[var(--modal-overlay)] backdrop-blur-sm z-50 overflow-y-auto">
+          <div className="modal-content mx-4 my-8 max-w-2xl md:mx-auto">
             <div className="bg-[var(--header-bg)] text-white p-4 flex justify-between items-center">
               <h2 className="text-xl font-semibold">{selectedLibrary.lbrryNm}</h2>
-              <button onClick={() => setShowModal(false)} className="text-2xl w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors">&times;</button>
+              <button 
+                onClick={() => setShowModal(false)} 
+                className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
+              >
+                ✕
+              </button>
             </div>
-            <div id="detail-map" />
+            <div id="detail-map" className="h-[300px] w-full" />
             <div className="p-6 space-y-4">
-              <div className="bg-[var(--bg-color)] rounded-lg p-3">
-                <p>⏰ 평일: {selectedLibrary.weekdayOperOpenHhmm} - {selectedLibrary.weekdayOperColseHhmm}</p>
-                <p>📅 토요일: {selectedLibrary.satOperOperOpenHhmm} - {selectedLibrary.satOperCloseHhmm}</p>
-                <p>🚫 휴관일: {selectedLibrary.closeDay}</p>
+              <div className="bg-[var(--info-bg)] backdrop-blur-md rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[var(--text-color)]">⏰</span>
+                  <p>평일: {selectedLibrary.weekdayOperOpenHhmm} - {selectedLibrary.weekdayOperColseHhmm}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[var(--text-color)]">📅</span>
+                  <p>토요일: {selectedLibrary.satOperOperOpenHhmm} - {selectedLibrary.satOperCloseHhmm}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[var(--text-color)]">🚫</span>
+                  <p>휴관일: {selectedLibrary.closeDay}</p>
+                </div>
               </div>
-              <p>📍 {selectedLibrary.rdnmadr}</p>
-              <p>📚 총 장서: {selectedLibrary.bookCo.toLocaleString()}권</p>
-              <p>📰 연속간행물: {selectedLibrary.pblictnCo.toLocaleString()}종</p>
-              <p>💿 비도서자료: {selectedLibrary.noneBookCo.toLocaleString()}점</p>
-              <p>💺 열람좌석: {selectedLibrary.seatCo.toLocaleString()}석</p>
-              <p>🎫 대출권수: {selectedLibrary.lonCo}권 / {selectedLibrary.lonDaycnt}일</p>
-              <p>🏢 운영기관: {selectedLibrary.operInstitutionNm}</p>
-              <p>📞 {selectedLibrary.phoneNumber}</p>
+              
+              <div className="flex items-center gap-2 p-2 hover:bg-[var(--info-bg)] rounded-lg transition-colors">
+                <span className="text-[var(--text-color)]">📍</span>
+                <p>{selectedLibrary.rdnmadr}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[var(--info-bg)] backdrop-blur-md rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[var(--text-color)]">📚</span>
+                    <p className="font-semibold">장서 현황</p>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <p>총 장서: {selectedLibrary.bookCo.toLocaleString()}권</p>
+                    <p>연속간행물: {selectedLibrary.pblictnCo.toLocaleString()}종</p>
+                    <p>비도서자료: {selectedLibrary.noneBookCo.toLocaleString()}점</p>
+                  </div>
+                </div>
+
+                <div className="bg-[var(--info-bg)] backdrop-blur-md rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[var(--text-color)]">🎫</span>
+                    <p className="font-semibold">이용 정보</p>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <p>열람좌석: {selectedLibrary.seatCo.toLocaleString()}석</p>
+                    <p>대출권수: {selectedLibrary.lonCo}권</p>
+                    <p>대출기간: {selectedLibrary.lonDaycnt}일</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 p-2 hover:bg-[var(--info-bg)] rounded-lg transition-colors">
+                <span className="text-[var(--text-color)]">🏢</span>
+                <p>{selectedLibrary.operInstitutionNm}</p>
+              </div>
+
+              <div className="flex items-center gap-2 p-2 hover:bg-[var(--info-bg)] rounded-lg transition-colors">
+                <span className="text-[var(--text-color)]">📞</span>
+                <p>{selectedLibrary.phoneNumber}</p>
+              </div>
             </div>
           </div>
         </div>
