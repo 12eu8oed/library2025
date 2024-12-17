@@ -452,7 +452,7 @@ export default function Home() {
         <div className="pt-20 pb-6 px-4">
           <div className="filter-section bg-[var(--card-bg)] rounded-xl shadow-lg">
             <div 
-              className="flex justify-between items-center p-4 cursor-pointer hover:bg-[var(--border-color)] rounded-t-xl transition-colors"
+              className="flex justify-between items-center p-4 cursor-pointer rounded-t-xl transition-colors"
               onClick={() => setFilterOpen(!filterOpen)}
             >
               <div className="flex items-center gap-2">
